@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card"><div class="card-body text-center">
+  <h1 class="h5 mb-3">Etykieta QR</h1>
+  <p class="lead">{{ label_text }}</p>
+  <img src="{{ url_for('qr_file', filename=qr_filename) }}" alt="QR" class="img-fluid border rounded p-2 mb-3" style="max-width:280px;">
+  <div class="small text-muted mb-3">{{ qr_url }}</div>
+  <button class="btn btn-primary" onclick="window.print()">Drukuj</button>
+</div></div>
+{% endblock %}

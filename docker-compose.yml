@@ -1,0 +1,13 @@
+services:
+  assetmgmt:
+    build: .
+    container_name: assetmgmt
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: change-me
+      ADMIN_PASSWORD: admin12345
+      PUBLIC_BASE_URL: http://localhost:5000
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped

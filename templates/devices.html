@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h1 class="h4 mb-0">Urządzenia</h1>
+  {% if current_user.role in ['admin','edytor'] %}<a class="btn btn-primary" href="{{ url_for('device_create') }}">Dodaj urządzenie</a>{% endif %}
+</div>
+<form class="row g-2 mb-3">
+  <div class="col-12 col-md-3"><input class="form-control" name="q" value="{{ q }}" placeholder="Szukaj"></div>
+  <div class="col-12 col-md-3"><select class="form-select" name="status"><option value="">Wszystkie statusy</option>{% for s in statuses %}<option value="{{ s }}" {% if s == status %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-12 col-md-2"><button class="btn btn-outline-secondary w-100">Filtruj</button></div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+<thead><tr><th>Nr inwentarzowy</th><th>Producent/model</th><th>SN</th><th>Status</th><th>Lokalizacja</th></tr></thead>
+<tbody>
+{% for item in items.items %}<tr><td><a href="{{ url_for('device_detail', device_id=item.id) }}">{{ item.inventory_number }}</a></td><td>{{ item.device_model.manufacturer }} {{ item.device_model.model_code }}</td><td>{{ item.serial_number or '—' }}</td><td>{{ item.status }}</td><td>{{ location_label(item.shelf) }}</td></tr>{% else %}<tr><td colspan="5" class="text-center text-muted py-4">Brak danych.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% include '_pagination.html' %}
+{% endblock %}

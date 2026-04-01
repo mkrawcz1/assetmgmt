@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h1 class="h4 mb-0">Części</h1>
+  {% if current_user.role in ['admin','edytor'] %}<a class="btn btn-primary" href="{{ url_for('part_create') }}">Dodaj część</a>{% endif %}
+</div>
+<form class="row g-2 mb-3"><div class="col-12 col-md-4"><input class="form-control" name="q" value="{{ q }}" placeholder="Szukaj"></div><div class="col-12 col-md-2"><button class="btn btn-outline-secondary w-100">Filtruj</button></div></form>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0 align-middle">
+<thead><tr><th>Nazwa typu części</th><th>Producent/model</th><th>Part number</th><th>SN</th><th>Lokalizacja</th></tr></thead>
+<tbody>{% for item in items.items %}<tr><td><a href="{{ url_for('part_detail', part_id=item.id) }}">{{ item.part_type.name }}</a></td><td>{{ item.part_type.manufacturer }} {{ item.part_type.model_code }}</td><td>{{ item.part_type.part_number }}</td><td>{{ item.serial_number or '—' }}</td><td>{{ location_label(item.shelf) }}</td></tr>{% else %}<tr><td colspan="5" class="text-center text-muted py-4">Brak danych.</td></tr>{% endfor %}</tbody>
+</table></div></div>
+{% include '_pagination.html' %}
+{% endblock %}

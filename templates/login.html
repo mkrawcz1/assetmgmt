@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-md-5 col-lg-4">
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4 mb-3">Logowanie</h1>
+        <form method="post">
+          <div class="mb-3"><label class="form-label">Login</label><input class="form-control" name="username" required></div>
+          <div class="mb-3"><label class="form-label">Hasło</label><input class="form-control" type="password" name="password" required></div>
+          <button class="btn btn-primary w-100">Zaloguj</button>
+          <div class="small text-muted mt-3">Domyślne konto: admin / admin12345</div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

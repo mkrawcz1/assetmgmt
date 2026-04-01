@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h4 mb-3">Nowa lokalizacja</h1>
+<form method="post" class="card"><div class="card-body row g-3">
+  <div class="col-12 col-md-6"><label class="form-label">Budynek</label><input class="form-control" name="building" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Pomieszczenie</label><input class="form-control" name="room" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Regał</label><input class="form-control" name="rack" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Półka</label><input class="form-control" name="shelf" required></div>
+  <div class="col-12"><button class="btn btn-primary">Zapisz</button></div>
+</div></form>
+{% endblock %}

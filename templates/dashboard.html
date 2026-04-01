@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-muted small">Urządzenia</div><div class="display-6">{{ devices_count }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-muted small">Części</div><div class="display-6">{{ parts_count }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-muted small">W serwisie</div><div class="display-6">{{ in_service_count }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-muted small">Uszkodzone</div><div class="display-6">{{ broken_count }}</div></div></div></div>
+</div>
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card"><div class="card-body">
+      <h2 class="h5">Ostatnio dodane urządzenia</h2>
+      <ul class="list-group list-group-flush">
+        {% for item in latest_devices %}<li class="list-group-item px-0 d-flex justify-content-between"><a href="{{ url_for('device_detail', device_id=item.id) }}">{{ item.inventory_number }}</a><span class="text-muted">{{ item.device_model.manufacturer }} {{ item.device_model.model_code }}</span></li>{% else %}<li class="list-group-item px-0 text-muted">Brak danych.</li>{% endfor %}
+      </ul>
+    </div></div>
+  </div>
+  <div class="col-12 col-lg-6">
+    <div class="card"><div class="card-body">
+      <h2 class="h5">Ostatnio dodane części</h2>
+      <ul class="list-group list-group-flush">
+        {% for item in latest_parts %}<li class="list-group-item px-0 d-flex justify-content-between"><a href="{{ url_for('part_detail', part_id=item.id) }}">{{ item.part_type.name }}</a><span class="text-muted">{{ item.serial_number or 'brak SN' }}</span></li>{% else %}<li class="list-group-item px-0 text-muted">Brak danych.</li>{% endfor %}
+      </ul>
+    </div></div>
+  </div>
+</div>
+{% endblock %}

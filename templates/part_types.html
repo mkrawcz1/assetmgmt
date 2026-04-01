@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h4 mb-0">Typy części</h1>{% if current_user.role in ['admin','edytor'] %}<a class="btn btn-primary" href="{{ url_for('part_type_create') }}">Dodaj typ części</a>{% endif %}</div>
+<div class="card"><div class="table-responsive"><table class="table table-hover mb-0"><thead><tr><th>Nazwa</th><th>Producent</th><th>Model</th><th>Part number</th><th>Aktywny</th><th></th></tr></thead><tbody>{% for item in items.items %}<tr><td>{{ item.name }}</td><td>{{ item.manufacturer }}</td><td>{{ item.model_code }}</td><td>{{ item.part_number }}</td><td>{{ 'tak' if item.is_active else 'nie' }}</td><td>{% if current_user.role in ['admin','edytor'] %}<a class="btn btn-sm btn-outline-primary" href="{{ url_for('part_type_edit', type_id=item.id) }}">Edytuj</a>{% endif %}</td></tr>{% else %}<tr><td colspan="6" class="text-center text-muted py-4">Brak danych.</td></tr>{% endfor %}</tbody></table></div></div>
+{% include '_pagination.html' %}
+{% endblock %}

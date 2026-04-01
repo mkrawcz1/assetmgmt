@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h4 mb-0">Lokalizacje</h1>{% if current_user.role == 'admin' %}<a class="btn btn-primary" href="{{ url_for('location_create') }}">Dodaj lokalizację</a>{% endif %}</div>
+{% for building in buildings %}<div class="card mb-3"><div class="card-body"><h2 class="h5">{{ building.name }}</h2>{% for room in building.rooms if not room.is_deleted %}<div class="ms-3 mt-2"><strong>{{ room.name }}</strong>{% for rack in room.racks if not rack.is_deleted %}<div class="ms-3 mt-1">{{ rack.name }}: {% for shelf in rack.shelves if not shelf.is_deleted %}<span class="badge text-bg-light border">{{ shelf.name }}</span> {% endfor %}</div>{% endfor %}</div>{% endfor %}</div></div>{% else %}<div class="text-muted">Brak lokalizacji.</div>{% endfor %}
+{% endblock %}

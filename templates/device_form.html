@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h4 mb-3">{{ title }}</h1>
+<form method="post" class="card"><div class="card-body row g-3">
+  <div class="col-12 col-md-6"><label class="form-label">Model urządzenia</label><select class="form-select" name="device_model_id" required>{% for model in models %}<option value="{{ model.id }}" {% if item and item.device_model_id == model.id %}selected{% endif %}>{{ model.manufacturer }} {{ model.model_code }} — {{ model.name }}</option>{% endfor %}</select></div>
+  <div class="col-12 col-md-6"><label class="form-label">Nr inwentarzowy</label><input class="form-control" name="inventory_number" value="{{ item.inventory_number if item else '' }}" placeholder="puste = auto" {% if item %}required{% endif %}></div>
+  <div class="col-12 col-md-6"><label class="form-label">Numer seryjny</label><input class="form-control" name="serial_number" value="{{ item.serial_number if item else '' }}"></div>
+  <div class="col-12 col-md-6"><label class="form-label">Status</label><select class="form-select" name="status">{% for s in statuses %}<option {% if item and item.status == s %}selected{% endif %}>{{ s }}</option>{% endfor %}</select></div>
+  <div class="col-12 col-md-6"><label class="form-label">Lokalizacja</label><select class="form-select" name="shelf_id"><option value="">Brak</option>{% for shelf in shelves %}<option value="{{ shelf.id }}" {% if item and item.shelf_id == shelf.id %}selected{% endif %}>{{ location_label(shelf) }}</option>{% endfor %}</select></div>
+  <div class="col-12 col-md-6"><label class="form-label">Kod QR</label><input class="form-control" name="qr_code_value" value="{{ item.qr_code_value if item else '' }}" placeholder="puste = auto" {% if item %}required{% endif %}></div>
+  <div class="col-12"><label class="form-label">Uwagi</label><textarea class="form-control" rows="4" name="notes">{{ item.notes if item else '' }}</textarea></div>
+  <div class="col-12"><button class="btn btn-primary">Zapisz</button></div>
+</div></form>
+{% endblock %}

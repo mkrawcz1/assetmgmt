@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h4 mb-3">{{ title }}</h1>
+<form method="post" class="card"><div class="card-body row g-3">
+  <div class="col-12 col-md-6"><label class="form-label">Nazwa</label><input class="form-control" name="name" value="{{ item.name if item else '' }}" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Producent</label><input class="form-control" name="manufacturer" value="{{ item.manufacturer if item else '' }}" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Model</label><input class="form-control" name="model_code" value="{{ item.model_code if item else '' }}" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Part number</label><input class="form-control" name="part_number" value="{{ item.part_number if item else '' }}" required></div>
+  <div class="col-12 col-md-6 form-check mt-4 ms-3"><input class="form-check-input" type="checkbox" name="is_active" {% if not item or item.is_active %}checked{% endif %}><label class="form-check-label">Aktywny</label></div>
+  <div class="col-12"><label class="form-label">Kompatybilne modele</label><select class="form-select" multiple name="compatible_models">{% for model in device_models %}<option value="{{ model.id }}" {% if model.id in selected %}selected{% endif %}>{{ model.manufacturer }} : {{ model.model_code }}</option>{% endfor %}</select><div class="form-text">Przytrzymaj Ctrl/Cmd, aby zaznaczyć wiele pozycji.</div></div>
+  <div class="col-12"><label class="form-label">Opis</label><textarea class="form-control" rows="4" name="description">{{ item.description if item else '' }}</textarea></div>
+  <div class="col-12"><button class="btn btn-primary">Zapisz</button></div>
+</div></form>
+{% endblock %}

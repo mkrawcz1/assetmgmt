@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h4 mb-3">{{ title }}</h1>
+<form method="post" class="card"><div class="card-body row g-3">
+  <div class="col-12 col-md-6"><label class="form-label">Nazwa modelu</label><input class="form-control" name="name" value="{{ item.name if item else '' }}" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Producent</label><input class="form-control" name="manufacturer" value="{{ item.manufacturer if item else '' }}" required></div>
+  <div class="col-12 col-md-6"><label class="form-label">Model</label><input class="form-control" name="model_code" value="{{ item.model_code if item else '' }}" required></div>
+  <div class="col-12 col-md-6 form-check mt-4 ms-3"><input class="form-check-input" type="checkbox" name="is_active" {% if not item or item.is_active %}checked{% endif %}><label class="form-check-label">Aktywny</label></div>
+  <div class="col-12"><label class="form-label">Opis</label><textarea class="form-control" rows="4" name="description">{{ item.description if item else '' }}</textarea></div>
+  <div class="col-12"><button class="btn btn-primary">Zapisz</button></div>
+</div></form>
+{% endblock %}
