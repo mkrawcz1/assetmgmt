@@ -1,41 +1,39 @@
 # AssetMGMT
 
-Gotowa, kontenerowa aplikacja Flask do ewidencji urządzeń medycznych i części zamiennych.
-
-## Funkcje
-- urządzenia i modele urządzeń
-- części i typy części
-- hierarchiczne lokalizacje
-- role: admin / edytor / czytacz
-- lokalne logowanie
-- logiczne usuwanie i przywracanie
-- załączniki plikowe
-- generowanie i druk QR dla urządzeń
-- skanowanie QR z poziomu przeglądarki mobilnej
-- dashboard
-- import CSV z walidacją i osobnymi szablonami
+Kontenerowa aplikacja Flask do ewidencji urządzeń medycznych i części zamiennych.
 
 ## Uruchomienie
+
+1. Skopiuj plik konfiguracyjny:
+
 ```bash
-docker compose up --build
+cp .env.example .env
 ```
 
-Aplikacja będzie dostępna pod adresem:
-```text
-http://localhost:5000
+2. Uzupełnij w `.env` własne wartości:
+- `SECRET_KEY`
+- `ADMIN_PASSWORD`
+- `PUBLIC_BASE_URL`
+
+3. Uruchom kontener:
+
+```bash
+docker compose up --build -d
 ```
 
-## Konto startowe
-- login: `admin`
-- hasło: `admin12345`
+Aplikacja będzie dostępna pod adresem wskazanym w `PUBLIC_BASE_URL`.
 
-Hasło można nadpisać zmienną środowiskową `ADMIN_PASSWORD`.
+## Najważniejsze cechy bezpieczeństwa
 
-## Dane trwałe
-Dane SQLite, załączniki i wygenerowane kody QR są trzymane w katalogu `./data` mapowanym jako wolumen.
-
-## Szablony importu CSV
-Dostępne z poziomu panelu administracyjnego.
+- CSRF dla formularzy POST
+- limit prób logowania: 5/min/IP
+- walidacja treści plików przy uploadzie
+- sesja wygasa po 8 godzinach
+- kontener działa jako użytkownik nieroot
+- zasoby statyczne serwowane lokalnie
 
 ## Uwagi
-To jest działające MVP. Nie zawiera pełnego audytu zmian, resetu hasła przez e-mail ani integracji z zewnętrznym SSO.
+
+- katalog `data/` jest montowany jako wolumen
+- plik `.env` nie powinien trafiać do repozytorium
+- domyślne hasło administratora ustawiane jest z `ADMIN_PASSWORD`

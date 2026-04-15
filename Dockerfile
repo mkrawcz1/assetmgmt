@@ -15,7 +15,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p /app/data/uploads /app/data/qr
+RUN useradd -r -s /usr/sbin/nologin appuser \
+    && mkdir -p /app/data/uploads /app/data/qr /app/instance \
+    && chown -R appuser:root /app
+
+USER appuser
 
 EXPOSE 5000
 

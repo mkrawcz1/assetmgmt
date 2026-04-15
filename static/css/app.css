@@ -1,0 +1,5 @@
+body { background:#f8f9fa; }
+.navbar-brand{ font-weight:700; }
+.table td,.table th{ white-space:nowrap; }
+#reader video { width:100%; max-width:420px; border-radius:.5rem; }
+#reader canvas { display:none; }

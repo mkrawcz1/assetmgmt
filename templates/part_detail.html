@@ -2,7 +2,8 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
   <div><h1 class="h4 mb-1">{{ item.part_type.name }}</h1><div class="text-muted">{{ item.part_type.manufacturer }} {{ item.part_type.model_code }}</div></div>
-  <div class="d-flex gap-2 flex-wrap">{% if current_user.role in ['admin','edytor'] %}<a class="btn btn-outline-primary" href="{{ url_for('part_edit', part_id=item.id) }}">Edytuj</a>{% endif %}{% if current_user.role == 'admin' %}<form method="post" action="{{ url_for('part_delete', part_id=item.id) }}"><button class="btn btn-outline-danger">Usuń</button></form>{% endif %}</div>
+  <div class="d-flex gap-2 flex-wrap">{% if current_user.role in ['admin','edytor'] %}<a class="btn btn-outline-primary" href="{{ url_for('part_edit', part_id=item.id) }}">Edytuj</a>{% endif %}{% if current_user.role == 'admin' %}<form method="post" action="{{ url_for('part_delete', part_id=item.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger">Usuń</button></form>{% endif %}</div>
 </div>
 <div class="row g-3">
   <div class="col-12 col-lg-7"><div class="card"><div class="card-body"><dl class="row mb-0">
@@ -15,7 +16,8 @@
   </dl></div></div></div>
   <div class="col-12 col-lg-5"><div class="card"><div class="card-body">
     <h2 class="h5">Załączniki</h2>
-    {% if current_user.role in ['admin','edytor'] %}<form method="post" action="{{ url_for('attachment_upload', entity_type='part_item', entity_id=item.id) }}" enctype="multipart/form-data" class="mb-3"><input class="form-control mb-2" type="file" name="file" required><button class="btn btn-sm btn-primary">Dodaj załącznik</button></form>{% endif %}
+    {% if current_user.role in ['admin','edytor'] %}<form method="post" action="{{ url_for('attachment_upload', entity_type='part_item', entity_id=item.id) }}" enctype="multipart/form-data" class="mb-3">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><input class="form-control mb-2" type="file" name="file" required><button class="btn btn-sm btn-primary">Dodaj załącznik</button></form>{% endif %}
     <ul class="list-group list-group-flush">{% for a in attachments %}<li class="list-group-item px-0 d-flex justify-content-between"><span>{{ a.original_filename }}</span><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('attachment_download', attachment_id=a.id) }}">Pobierz</a></li>{% else %}<li class="list-group-item px-0 text-muted">Brak załączników.</li>{% endfor %}</ul>
   </div></div></div>
 </div>

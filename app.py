@@ -4,12 +4,13 @@ import csv
 import io
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from pathlib import Path
 from typing import Optional
 
 import qrcode
+import filetype
 from flask import (
     Flask,
     abort,
@@ -21,7 +22,10 @@ from flask import (
     session,
     url_for,
 )
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFError, CSRFProtect
 from sqlalchemy import or_
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -38,6 +42,15 @@ QR_DIR.mkdir(parents=True, exist_ok=True)
 
 ALLOWED_EXTENSIONS = {
     "png", "jpg", "jpeg", "gif", "webp", "pdf", "txt", "doc", "docx", "xls", "xlsx", "csv", "zip"
+}
+ALLOWED_MIME_TYPES = {
+    "image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf",
+    "text/plain", "text/csv", "application/zip",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/msword",
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/octet-stream",
 }
 MAX_FILE_SIZE_MB = 25
 PER_PAGE = 20
@@ -57,8 +70,12 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-me-in-production
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE_MB * 1024 * 1024
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=8)
+app.config["WTF_CSRF_TIME_LIMIT"] = None
 
 db = SQLAlchemy(app)
+csrf = CSRFProtect(app)
+limiter = Limiter(key_func=get_remote_address, app=app, default_limits=[])
 
 
 class TimestampMixin:
@@ -277,6 +294,44 @@ def allowed_file(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+def sniff_file_type(file_storage) -> tuple[str | None, str | None]:
+    file_storage.stream.seek(0)
+    head = file_storage.stream.read(261)
+    file_storage.stream.seek(0)
+    kind = filetype.guess(head)
+    if kind:
+        return kind.extension, kind.mime
+    return None, None
+
+
+def validate_uploaded_file(file_storage) -> None:
+    if not allowed_file(file_storage.filename or ""):
+        raise ValueError("Niedozwolony typ pliku.")
+    ext = (file_storage.filename or "").rsplit('.', 1)[-1].lower() if '.' in (file_storage.filename or '') else ''
+    detected_ext, detected_mime = sniff_file_type(file_storage)
+    text_like_extensions = {"txt", "csv", "doc", "docx", "xls", "xlsx"}
+    if ext in text_like_extensions and not detected_mime:
+        return
+    if detected_ext and detected_ext != ext and not ({detected_ext, ext} <= {"jpg", "jpeg"}):
+        raise ValueError("Zawartość pliku nie zgadza się z rozszerzeniem.")
+    if detected_mime and detected_mime not in ALLOWED_MIME_TYPES:
+        raise ValueError("Niedozwolony typ zawartości pliku.")
+
+
+def resolve_attachment_entity(entity_type: str, entity_id: int):
+    allowed = {
+        "device": Device,
+        "part_item": PartItem,
+    }
+    model = allowed.get(entity_type)
+    if not model:
+        raise ValueError("Nieprawidłowy typ encji.")
+    entity = active_query(model).filter_by(id=entity_id).first()
+    if not entity:
+        raise ValueError("Nie znaleziono wskazanego obiektu.")
+    return entity
+
+
 def make_qr(device: Device) -> str:
     filename = f"device_{device.id}.png"
     filepath = QR_DIR / filename
@@ -356,25 +411,31 @@ def find_shelf_by_path(building_name: str, room_name: str, rack_name: str, shelf
     )
 
 
-@app.before_request
-def setup_database():
-    db.create_all()
-    cfg = get_config()
-    if not User.query.filter_by(username="admin").first():
-        user = User(username="admin", role="admin")
-        user.set_password(os.environ.get("ADMIN_PASSWORD", "admin12345"))
-        db.session.add(user)
-        db.session.commit()
-    _ = cfg
+def initialize_database() -> None:
+    with app.app_context():
+        db.create_all()
+        cfg = get_config()
+        _ = cfg
+        if not User.query.filter_by(username="admin").first():
+            user = User(username="admin", role="admin")
+            user.set_password(os.environ.get("ADMIN_PASSWORD", "admin12345"))
+            db.session.add(user)
+            db.session.commit()
+
+
+initialize_database()
 
 
 @app.route("/login", methods=["GET", "POST"])
+@limiter.limit("5 per minute", methods=["POST"], error_message="Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.")
 def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
         user = User.query.filter_by(username=username, is_deleted=False, is_active=True).first()
         if user and user.check_password(password):
+            session.clear()
+            session.permanent = True
             session["user_id"] = user.id
             return redirect(url_for("dashboard"))
         flash("Nieprawidłowy login lub hasło.", "danger")
@@ -764,8 +825,11 @@ def user_create():
         try:
             username = request.form.get("username", "").strip()
             password = request.form.get("password", "")
+            role = request.form.get("role", "czytacz")
+            if role not in ROLES:
+                raise ValueError("Nieprawidłowa rola.")
             validate_password(password)
-            user = User(username=username, role=request.form.get("role", "czytacz"))
+            user = User(username=username, role=role)
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
@@ -955,26 +1019,29 @@ def csv_template(entity: str):
 @role_required("admin", "edytor")
 def attachment_upload(entity_type: str, entity_id: int):
     file = request.files.get("file")
-    if not file or not file.filename:
-        flash("Nie wybrano pliku.", "danger")
-        return redirect(request.referrer or url_for("dashboard"))
-    if not allowed_file(file.filename):
-        flash("Niedozwolony typ pliku.", "danger")
-        return redirect(request.referrer or url_for("dashboard"))
-    original = secure_filename(file.filename)
-    stored = f"{uuid.uuid4().hex}_{original}"
-    destination = UPLOAD_DIR / stored
-    file.save(destination)
-    db.session.add(Attachment(
-        entity_type=entity_type,
-        entity_id=entity_id,
-        original_filename=original,
-        stored_filename=stored,
-        mime_type=file.mimetype,
-        file_size=destination.stat().st_size,
-    ))
-    db.session.commit()
-    flash("Załącznik został dodany.", "success")
+    try:
+        resolve_attachment_entity(entity_type, entity_id)
+        if not file or not file.filename:
+            raise ValueError("Nie wybrano pliku.")
+        validate_uploaded_file(file)
+        original = secure_filename(file.filename)
+        stored = f"{uuid.uuid4().hex}_{original}"
+        destination = UPLOAD_DIR / stored
+        file.save(destination)
+        detected_ext, detected_mime = sniff_file_type(file)
+        db.session.add(Attachment(
+            entity_type=entity_type,
+            entity_id=entity_id,
+            original_filename=original,
+            stored_filename=stored,
+            mime_type=detected_mime or file.mimetype,
+            file_size=destination.stat().st_size,
+        ))
+        db.session.commit()
+        flash("Załącznik został dodany.", "success")
+    except ValueError as exc:
+        db.session.rollback()
+        flash(str(exc), "danger")
     return redirect(request.referrer or url_for("dashboard"))
 
 
@@ -997,6 +1064,16 @@ def scan_qr():
     return render_template("scan.html", title="Skanuj QR")
 
 
+@app.errorhandler(CSRFError)
+def error_csrf(err):
+    return render_template("error.html", title="Błąd CSRF", message=f"Nieprawidłowy token bezpieczeństwa: {err.description}"), 400
+
+
+@app.errorhandler(429)
+def error_429(_):
+    return render_template("error.html", title="429", message="Zbyt wiele żądań. Spróbuj ponownie za chwilę."), 429
+
+
 @app.errorhandler(403)
 def error_403(_):
     return render_template("error.html", title="403", message="Brak uprawnień."), 403
@@ -1008,4 +1085,4 @@ def error_404(_):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=os.environ.get("FLASK_DEBUG", "0") == "1")

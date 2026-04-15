@@ -1,15 +1,7 @@
-# Python
 __pycache__/
 *.pyc
-
-# SQLite DB
-data/*.db
-
-# Uploads (załączniki)
-data/uploads/
-
-# Env
 .env
-
-# Docker volumes
-data/
+data/*.db
+data/uploads/
+data/qr/
+instance/

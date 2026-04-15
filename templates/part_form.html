@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1 class="h4 mb-3">{{ title }}</h1>
-<form method="post" class="card"><div class="card-body row g-3">
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><div class="card-body row g-3">
   <div class="col-12 col-md-6"><label class="form-label">Typ części</label><select class="form-select" name="part_type_id" required>{% for p in part_types %}<option value="{{ p.id }}" {% if item and item.part_type_id == p.id %}selected{% endif %}>{{ p.manufacturer }} {{ p.model_code }} — {{ p.name }}</option>{% endfor %}</select></div>
   <div class="col-12 col-md-6"><label class="form-label">Numer seryjny</label><input class="form-control" name="serial_number" value="{{ item.serial_number if item else '' }}"></div>
   <div class="col-12 col-md-6"><label class="form-label">Lokalizacja</label><select class="form-select" name="shelf_id"><option value="">Brak</option>{% for shelf in shelves %}<option value="{{ shelf.id }}" {% if item and item.shelf_id == shelf.id %}selected{% endif %}>{{ location_label(shelf) }}</option>{% endfor %}</select></div>
