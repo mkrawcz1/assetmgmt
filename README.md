@@ -14,6 +14,7 @@ cp .env.example .env
 - `SECRET_KEY`
 - `ADMIN_PASSWORD`
 - `PUBLIC_BASE_URL`
+- opcjonalnie ustaw `APP_UID` i `APP_GID`, jeśli chcesz dopasować UID/GID do hosta
 
 3. Uruchom kontener:
 
@@ -34,6 +35,7 @@ Aplikacja będzie dostępna pod adresem wskazanym w `PUBLIC_BASE_URL`.
 
 ## Uwagi
 
-- katalog `data/` jest montowany jako wolumen
+- katalog `data/` jest montowany jako wolumen do `/data` w kontenerze
+- entrypoint nadaje prawa zapisu dla `appuser` przed startem aplikacji
 - plik `.env` nie powinien trafiać do repozytorium
 - domyślne hasło administratora ustawiane jest z `ADMIN_PASSWORD`

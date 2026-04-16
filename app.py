@@ -31,14 +31,18 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data"
+DATA_DIR = Path(os.environ.get("DATA_DIR", str(BASE_DIR / "data"))).resolve()
 UPLOAD_DIR = DATA_DIR / "uploads"
 QR_DIR = DATA_DIR / "qr"
 DB_PATH = DATA_DIR / "assetmgmt.db"
 
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-QR_DIR.mkdir(parents=True, exist_ok=True)
+
+def ensure_runtime_directories() -> None:
+    for path in (DATA_DIR, UPLOAD_DIR, QR_DIR):
+        path.mkdir(parents=True, exist_ok=True)
+
+
+ensure_runtime_directories()
 
 ALLOWED_EXTENSIONS = {
     "png", "jpg", "jpeg", "gif", "webp", "pdf", "txt", "doc", "docx", "xls", "xlsx", "csv", "zip"
