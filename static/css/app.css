@@ -3,3 +3,17 @@ body { background:#f8f9fa; }
 .table td,.table th{ white-space:nowrap; }
 #reader video { width:100%; max-width:420px; border-radius:.5rem; }
 #reader canvas { display:none; }
+
+
+/* navigation + action clickability hardening */
+.app-navbar{position:sticky;top:0;z-index:2000;background:#fff;}
+.app-navbar .container-fluid{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.app-nav-links{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;position:relative;z-index:2001;}
+.app-nav-links > *{position:relative;z-index:2002;}
+.container-fluid.px-3,.container-fluid.px-md-4,.container-fluid.pb-4,.container-fluid.px-3.px-md-4.pb-4{position:relative;z-index:1;}
+.card,.table-responsive,.alert,.row,form{position:relative;z-index:1;}
+a.btn,button.btn,.btn,input[type="submit"],input[type="button"],button{position:relative;z-index:2;}
+@media (max-width: 768px){
+  .app-navbar .container-fluid{align-items:flex-start;}
+  .app-nav-links{width:100%;}
+}
